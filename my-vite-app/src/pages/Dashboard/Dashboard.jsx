@@ -1,231 +1,426 @@
-import React from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { IoMdAddCircle } from "react-icons/io";
 import { FaHome, FaWater, FaFish, FaInfoCircle } from "react-icons/fa";
+import Button from "./Button";
+import Button1 from "./Button1";
+import useCallApi from "../../hooks/useCallApi";
+import { useSelector } from "react-redux";
+import useSignalR from "../../hooks/useSignalR";
+import DashboardRequestApi from "../../services/api/DashboardApi/pondTypeRequest";
+import { toast } from "react-toastify";
+import AlarmRequestApi from "../../services/api/AlarmApi/alarmRequest";
+import { motion } from "framer-motion";
+//import Modal from "../../components/Modal";
+//import DeleteModal from "../../components/DeleteModal";
+//import SetTime from "../../components/SetTime";
+//import CreateModal from "../../components/CreateModal";
+//import ImageModal from "../../components/ImageModal";
+import Loading from "../../components/Loading";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import PondSummary from "../../components/PondSummary";
+import Sidebar1 from "../../components/Sidebar/Sidebar1";
+import SetTime from "../../components/SetTime";
+import ImageModal from "../../components/ImageModal";
+import Modal from "../../components/Modal";
+import DeleteModal from "../../components/DeleteModal";
+import CreateModal from "../../components/CreateModal";
 
-// ⚠️ Sidebar tạm thời tạo giả
-const Sidebar = () => (
-  <div className="flex flex-col h-full">
-    <h2 className="text-2xl font-bold mb-8 text-center">ShrimpPond</h2>
+function Dashboard() {
+  const callApi = useCallApi();
+  const expanded = useSelector((state) => state.sidebar.expanded);
+  const [isModal, setIsModal] = useState(false);
+  const [isCreateModal, setIsCreateModal] = useState(false);
+  const [isSetTime, setIsSetTime] = useState(false);
+  const [isDeleteModal, setIsDeleteModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showImage, setShowImage] = useState(false);
+  const [activePonds, setActivePonds] = useState(0);
+  const [pondTypes, setPondTypes] = useState([]);
+  const [ponds, setPonds] = useState([]);
+  const [selectedPondTypeId, setSelectedPondTypeId] = useState("");
+  const [selectedPondTypeName, setSelectedPondTypeName] = useState("");
+  const [daysOperated, setDaysOperated] = useState(0);
+  const [needsCleaning, setNeedsCleaning] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const farmName = localStorage.getItem("farmName") || "";
+  const farmId = Number(localStorage.getItem("farmId"));
 
-    <nav className="flex-1">
-      <ul className="space-y-2">
-        <SidebarItem icon={<FaHome />} label="Tổng quan" />
-        <SidebarItem icon={<FaWater />} label="Thông số môi trường" />
-        <SidebarItem icon={<FaFish />} label="Thu hoạch" />
-        <SidebarItem icon={<FaInfoCircle />} label="Thông tin ao" />
-      </ul>
-    </nav>
+  // // Lưu farmName và farmId vào localStorage khi component mount, tạm thời sử dụng giá trị cố định
+  // // Bạn có thể thay thế giá trị này bằng giá trị thực tế từ backend hoặc props nếu cần
+  // useEffect(() => {
+  //   localStorage.setItem("farmName", "Farm A");
+  //   localStorage.setItem("farmId", "1");
+  // }, []);
 
-    <footer className="text-xs text-white/70 mt-auto pt-6 text-center">
-      © 2025 ShrimpPond
-    </footer>
-  </div>
-);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-const SidebarItem = ({ icon, label }) => (
-  <li className="flex items-center gap-3 p-2 hover:bg-white/10 rounded cursor-pointer transition">
-    <span className="text-lg">{icon}</span>
-    <span>{label}</span>
-  </li>
-);
+  //trạng thái của tủ điện
+  const [cabinData, setCabinData] = useState([
+    { name: "Tủ điện 1", status: "Offline", updated: false },
+    { name: "Tủ điện 2", status: "Offline", updated: false },
+  ]);
+  // Mã hóa trạng thái của tủ điện
+  const cabinStatusMapping = {
+    "Tủ điện 1": {
+      GOOD: "Online",
+      BAD: "Offline",
+      Measuring: "Đang đo",
+    },
+    "Tủ điện 2": {
+      GOOD: "Online",
+      BAD: "Offline",
+    },
+  };
+  const handleCabinStatusChanged = useCallback((data) => {
+    setCabinData((prevData) => {
+      const updatedData = [...prevData]; // Tạo bản sao của cabinData để tránh thay đổi trực tiếp
+      // Map "Cabin 1" to "Tủ điện 1" and "Cabin 2" to "Tủ điện 2"
+      const displayName =
+        data.Name === "Cabin 1"
+          ? "Tủ điện 1"
+          : data.Name === "Cabin 2"
+          ? "Tủ điện 2"
+          : null; //Dữ liệu từ backend là "Cabin 1" hoặc "Cabin 2", còn trên UI bạn hiển thị là "Tủ điện 1" hoặc "Tủ điện 2".
+      if (!displayName) return updatedData; //  Nếu không phải là Cabin 1 hoặc Cabin 2, không làm gì cả
 
-// ✅ Component hiển thị nhóm ao
-const PondSummary = ({ pondTypeName, ponds }) => {
-  return (
-    <div className="mb-6 bg-white shadow-md rounded-xl p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-bold text-teal-700">
-          {pondTypeName} : {ponds.length} ao
-        </h3>
-        <div className="flex gap-3 text-xl text-gray-500">
-          <button className="hover:text-black">
-            <i className="fas fa-trash" />
-          </button>
-          <button className="hover:text-black">
-            <i className="fas fa-plus" />
-          </button>
+      const cabinIndex = updatedData.findIndex((c) => c.name === displayName); //Tìm index của cabin cần cập nhật trong danh sách cabin hiện tại.
+      // Nếu tìm thấy cabin, cập nhật trạng thái và đánh dấu là đã cập nhật. findIndex là một hàm buil-in, sẽ trả về -1 nếu không tìm thấy.
+
+      if (cabinIndex !== -1) {
+        const mappedStatus =
+          cabinStatusMapping[displayName]?.[data.Value] || "Offline"; //cabinStatusMapping -> displayName -> GOOD
+        updatedData[cabinIndex] = {
+          ...updatedData[cabinIndex],
+          status: mappedStatus,
+          updated: true, //Gán trạng thái mới và flag updated: true (để trigger animation)
+        };
+        setTimeout(() => {
+          setCabinData((current) => {
+            const resetData = [...current];
+            resetData[cabinIndex] = {
+              ...resetData[cabinIndex],
+              updated: false, //Sau khi hiệu ứng animation chạy 1 giây, bạn đặt lại updated: false để không ảnh hưởng render tiếp theo.
+            };
+            return resetData;
+          });
+        }, 1000);
+      }
+      return updatedData;
+    });
+  }, []);
+
+  useSignalR(handleCabinStatusChanged);
+
+  const fetchData = useCallback(() => {
+    if (!farmName || farmName.trim() === "") {
+      setIsLoading(false);
+      toast.error("Vui lòng chọn một trang trại!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    callApi(
+      [
+        DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFamrId(farmId),
+        DashboardRequestApi.pondRequest.getPondRequestByFarmId(farmId),
+        DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId, 1),
+        DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
+        AlarmRequestApi.alarmRequest.getStatusCabin(
+          farmId,
+          "Tình trạng kết nối ESP tủ điện 1"
+        ),
+        AlarmRequestApi.alarmRequest.getStatusCabin(
+          farmId,
+          "Tình trạng kết nối ESP tủ điện 2"
+        ),
+      ],
+      (res) => {
+        console.log("farmId:", farmId);
+        setPondTypes(res[0] || []);
+        setPonds(res[1] || []);
+        setActivePonds(res[2]?.length || 0);
+
+        const lastCleaningTime = new Date(res[3].cleanTime);
+        const currentTime = new Date();
+        const days = Math.floor(
+          (currentTime - lastCleaningTime) / (1000 * 60 * 60 * 24)
+        );
+        setDaysOperated(days);
+
+        if (days >= 60) {
+          setNeedsCleaning(true);
+        } else {
+          setNeedsCleaning(false);
+        }
+
+        setCabinData((prevData) => {
+          const updatedData = [...prevData];
+          const cabin1Status =
+            cabinStatusMapping["Tủ điện 1"][res[4].status] || "Offline";
+          updatedData[0] = { ...updatedData[0], status: cabin1Status };
+          const cabin2Status =
+            cabinStatusMapping["Tủ điện 2"][res[5].status] || "Offline";
+          updatedData[1] = { ...updatedData[1], status: cabin2Status };
+          return updatedData;
+        });
+
+        setIsLoading(false); //  Dừng loading sau khi nhận dữ liệu
+      },
+      (err) => {
+        toast.error("Không thể tải dữ liệu từ API!");
+        console.error("Lỗi", err);
+        setIsLoading(false);
+      }
+    );
+  }, [callApi, farmId]);
+
+  //Gọi tự động khi `Dashboard` render
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    console.log("🧪 Đã vào useEffect test API");
+    DashboardRequestApi.pondTypeRequest
+      .getPondTypeRequestByFamrId(1)
+      .then((res) => {
+        console.log("✅ Test API thành công:", res);
+      })
+      .catch((err) => {
+        console.error("❌ Test API lỗi:", err);
+      });
+  }, []);
+
+  const handleSelected = (pondTypeId, pondTypeName) => {
+    setSelectedPondTypeId(pondTypeId);
+    setSelectedPondTypeName(pondTypeName);
+  };
+
+  const handleCleanSensor = () => {
+    const currentTime = new Date().toISOString();
+    callApi(
+      [
+        DashboardRequestApi.timeRequest.postCleaningTime({
+          cleanTime: currentTime,
+          farmId: farmId,
+        }),
+      ],
+      (res) => {
+        toast.success("Vệ sinh cảm biến thành công!");
+        setDaysOperated(0);
+        setNeedsCleaning(false);
+        setIsConfirmModalOpen(false);
+      },
+      (err) => {
+        toast.error("Không thể cập nhật thời gian vệ sinh!");
+      }
+    );
+  };
+
+  const renderCabinStatus = () => {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white border p-2">
+        <h2 className="text-xl font-bold text-teal-800 mb-3">
+          Trạng thái tủ điện
+        </h2>
+        <div className="flex flex-col gap-2">
+          {cabinData.map((cabin, index) => (
+            <motion.div
+              key={cabin.name}
+              className="text-center py-2 p-10 text-sm font-medium rounded-md"
+              animate={{
+                backgroundColor:
+                  cabin.status === "Online"
+                    ? "#DCFCE7"
+                    : cabin.status === "Đang đo"
+                    ? "#FFEDD5"
+                    : "#FEE2E2",
+                color:
+                  cabin.status === "Online"
+                    ? "#166534"
+                    : cabin.status === "Đang đo"
+                    ? "#C2410C"
+                    : "#991B1B",
+                scale: cabin.updated ? [1, 1.05, 1] : 1,
+              }}
+              transition={{
+                color: { duration: 0.3 },
+                backgroundColor: { duration: 0.3 },
+                scale: { duration: 0.5 },
+              }}
+            >
+              {cabin.name}: {cabin.status}
+            </motion.div>
+          ))}
         </div>
       </div>
-
-      <div className="flex gap-4 overflow-x-auto pb-2">
-        {ponds.map((pond) => (
-          <div
-            key={pond.id}
-            className={`w-60 flex-shrink-0 rounded-xl border shadow ${
-              pond.batches > 0 ? "bg-white" : "bg-gray-200 text-gray-600"
-            }`}
-          >
-            <div
-              className={`p-3 rounded-t-xl ${
-                pond.batches > 0 ? "bg-blue-500 text-white" : "bg-gray-300"
-              }`}
-            >
-              <div className="flex justify-between font-bold">
-                <span>{pond.id}</span>
-                <span>{pond.days} ngày</span>
-              </div>
-              <p className="text-sm font-light">{pond.batches} vụ</p>
+    );
+  };
+  //--------------------------------------------------------------------------------------//
+  return (
+    <div className="flex max-h-screen bg-gray-50">
+      <Sidebar1></Sidebar1>
+      <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto overflow-hidden max-h-screen mb-2">
+        <div className="w-[95%] h-auto flex flex-col gap-2 items-stretch sm:flex-row justify-between p-5 m-5 bg-gray-100 rounded-lg shadow-md">
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-2 min-w-0 border">
+              <h1 className="uppercase min-w-50 sm:text-2xl font-sans text-sm font-bold text-teal-800 text-center">
+                Tổng số ao
+              </h1>
+              <span className="text-5xl font-mono font-bold text-red-500">
+                {ponds?.length || 0}
+              </span>
             </div>
+            <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-2 min-w-0 border">
+              <h1 className="uppercase min-w-50 sm:text-2xl font-sans text-sm font-bold text-teal-800 text-center">
+                Hoạt động
+              </h1>
+              <span className="text-5xl font-mono font-bold text-red-500">
+                {activePonds}
+              </span>
+            </div>
+          </div>
 
-            <div className="p-3 space-y-2">
-              {/* Thiết bị (giả lập) */}
-              <div className="flex flex-col gap-1 text-center text-sm">
-                {pond.batches > 0 ? (
-                  <>
-                    <span className="bg-red-200 text-red-800 px-2 py-1 rounded">
-                      Máy quạt
-                    </span>
-                    <span className="bg-red-200 text-red-800 px-2 py-1 rounded">
-                      Máy oxi
-                    </span>
-                    <span className="bg-red-200 text-red-800 px-2 py-1 rounded">
-                      Máy lọc
-                    </span>
-                  </>
+          <div className="border flex-1 flex-col gap-4 items-center rounded-xl bg-white shadow-lg p-2">
+            <div className="flex flex-col items-center justify-center gap-1 ">
+              <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
+                Trang trại: {farmName}
+              </h1>
+              <div className="text-gray-700 space-y-1 text-center">
+                <p className="text-base font-helvetica">
+                  Thời gian hiện tại: {currentTime.toLocaleTimeString()}
+                </p>
+                <p className="text-base font-helvetica">
+                  Số ngày vận hành: {daysOperated}
+                </p>
+                {needsCleaning ? (
+                  <span
+                    onClick={() => setIsConfirmModalOpen(true)}
+                    className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-red-200 transition"
+                  >
+                    Cần vệ sinh cảm biến
+                  </span>
                 ) : (
-                  <>
-                    <span className="bg-gray-300 px-2 py-1 rounded">N/A</span>
-                    <span className="bg-gray-300 px-2 py-1 rounded">N/A</span>
-                  </>
+                  <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                    Cảm biến: Tốt
+                  </span>
                 )}
               </div>
-
-              {/* Nút hoặc icon */}
-              {pond.batches > 0 ? (
-                <button className="flex justify-between items-center gap-1 text-white text-sm cursor-pointer">
-                  <Icon icon="💧" color="blue" />
-                  <Icon icon="🌿" color="green" />
-                  <Icon icon="📊" color="purple" />
-                  <Icon icon="🍤" color="cyan" />
-                  <Icon icon="🗑️" color="orange" />
-                </button>
-              ) : (
-                <button className="bg-green-500 text-white w-full py-1 mt-2 rounded hover:bg-green-600 text-sm">
-                  ▶ Kích hoạt
-                </button>
-              )}
+            </div>
+            <div className="flex flex-rows items-center justify-center gap-3 pt-5">
+              <Button1 onClick={() => setIsSetTime(true)} />
+              <Button onClick={() => setShowImage(true)} />
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-const Icon = ({ icon, color }) => {
-  const bgClass = {
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    purple: "bg-purple-500",
-    cyan: "bg-cyan-500",
-    orange: "bg-orange-500",
-  }[color];
+          {renderCabinStatus()}
+        </div>
 
-  return (
-    <span
-      className={`text-white w-8 h-8 flex items-center justify-center rounded text-sm ${bgClass}`}
-    >
-      {icon}
-    </span>
-  );
-};
-
-const Dashboard = () => {
-  // Dữ liệu mẫu
-  const pondTypes = [
-    {
-      pondTypeName: "Ao Thương Phẩm",
-      ponds: [
-        { id: "B01", days: 95, batches: 7 },
-        { id: "B02", days: 95, batches: 4 },
-        { id: "B03", days: 20, batches: 1 },
-      ],
-    },
-    {
-      pondTypeName: "Ao Thử Nghiệm",
-      ponds: [
-        { id: "T01", days: 30, batches: 0 },
-        { id: "T02", days: 15, batches: 0 },
-      ],
-    },
-  ];
-
-  return (
-    <div className="flex bg-gradient-to-br from-teal-100 to-gray-100/40 min-h-screen">
-      {/* Nội dung chính */}
-      <main className="flex-1 flex flex-col items-center p-6 space-y-6 overflow-y-auto">
-        {/* Thông tin tổng quan */}
-        <section className="w-full max-w-[1300px] grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {/* Tổng số ao */}
-          <div className="bg-white shadow rounded-xl p-3 text-center">
-            <h2 className="text-xl font-bold text-teal-700 uppercase">
-              Tổng số ao
-            </h2>
-            <p className="text-5xl text-red-500 font-mono font-bold mt-2">
-              {pondTypes.reduce(
-                (total, group) => total + group.ponds.length,
-                0
-              )}
-            </p>
-          </div>
-
-          {/* Thông tin trang trại */}
-          <div className="bg-white shadow rounded-xl p-6 flex flex-col items-center text-center space-y-2">
-            <h2 className="text-lg font-bold text-teal-600">
-              Trang trại: Ao tôm Cần Giờ
-            </h2>
-            <p className="text-gray-600">Thời gian hiện tại: 00:00:00</p>
-            <p className="text-gray-600">Số ngày vận hành: 35</p>
-            <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-              Cảm biến: Tốt
-            </span>
-            <div className="flex gap-4 mt-2">
-              <AiOutlineClockCircle className="text-3xl text-gray-600" />
-              <FaMapMarkerAlt className="text-3xl text-red-500" />
-            </div>
-          </div>
-
-          {/* Trạng thái tủ điện */}
-          <div className="bg-white shadow rounded-xl p-6 text-center">
-            <h2 className="text-lg font-bold text-teal-700 mb-4">
-              Trạng thái tủ điện
-            </h2>
-            <div className="space-y-2">
-              <div className="bg-red-100 text-red-700 p-2 rounded-md">
-                Tủ điện 1: Offline
-              </div>
-              <div className="bg-red-100 text-red-700 p-2 rounded-md">
-                Tủ điện 2: Offline
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Danh sách loại ao */}
-        <section className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
+        <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
           {pondTypes.length === 0 ? (
-            <p className="text-center text-teal-600">Không có loại ao nào</p>
+            <p className="text-teal-600 text-center">Không có loại ao nào</p>
           ) : (
-            pondTypes.map((type) => (
-              <PondSummary
-                key={type.pondTypeName}
-                pondTypeName={type.pondTypeName}
-                ponds={type.ponds}
-              />
-            ))
+            pondTypes.map((pondType) => {
+              const filteredPonds = ponds.filter(
+                (pond) => pond.pondTypeName === pondType.pondTypeName
+              );
+              console.log(
+                "Rendering PondSummary for",
+                pondType.pondTypeName,
+                "with ponds:",
+                filteredPonds
+              );
+              return (
+                <PondSummary
+                  onPutSucces={fetchData}
+                  key={pondType.pondTypeId}
+                  pondTypeName={pondType.pondTypeName}
+                  pondTypeId={pondType.pondTypeId}
+                  ponds={filteredPonds}
+                  setIsDeleteModal={setIsDeleteModal}
+                  setIsCreateModal={setIsCreateModal}
+                  onSelected={handleSelected}
+                  onDeleteCardSuccess={fetchData}
+                />
+              );
+            })
           )}
-        </section>
-      </main>
-      {/* Nút thêm ao */}
-      <button
-        type="button"
-        className="fixed bottom-6 right-6 bg-white shadow-lg p-2 rounded-full"
-      >
-        <IoMdAddCircle className="text-4xl text-teal-600" />
-      </button>
+        </div>
+        <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed flex justify-center">
+          <IoMdAddCircle
+            onClick={() => setIsModal(true)}
+            className="h-12 text-4xl text-black"
+          />
+        </button>
+        {isSetTime && (
+          <SetTime
+            setIsSetTime={setIsSetTime}
+            onPostSuccess={fetchData}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+        )}
+        {isModal && <Modal setIsModal={setIsModal} onPostSuccess={fetchData} />}
+        {isDeleteModal && (
+          <DeleteModal
+            setIsDeleteModal={setIsDeleteModal}
+            pondTypeId={selectedPondTypeId}
+            pondTypeName={selectedPondTypeName}
+            onDeleteSuccess={fetchData}
+          />
+        )}
+        {isCreateModal && (
+          <CreateModal
+            setIsCreateModal={setIsCreateModal}
+            onPostSuccess={fetchData}
+            pondTypeId={selectedPondTypeId}
+          />
+        )}
+        {showImage && <ImageModal setShowImage={setShowImage} />}
+      </div>
+      {isLoading && <Loading />}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+      />
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <p className="text-lg font-medium mb-4">
+              Bạn có chắc chắn muốn vệ sinh cảm biến?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+                onClick={() => setIsConfirmModalOpen(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                onClick={handleCleanSensor}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-export default Dashboard;
+export default memo(Dashboard);

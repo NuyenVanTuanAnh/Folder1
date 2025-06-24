@@ -1,11 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 
-const Button = () => {
+const Button = ({ onClick, disabled, children }) => {
   return (
     <StyledWrapper>
-      <button className="cssbuttons-io">
-        <span> Let's Go ---> </span>
+      <button className="cssbuttons-io" onClick={onClick} disabled={disabled}>
+        <span> {children} </span>
       </button>
     </StyledWrapper>
   );

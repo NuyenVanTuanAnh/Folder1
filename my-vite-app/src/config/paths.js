@@ -3,7 +3,7 @@ const paths = {
   evista: "/evista", //
   status: "/status",
   food: "/food", //
-  account: "/",
+  account: "/accounton", //
   access: "/access", //
   harvest: "/harvest", //
   alarm: "/alarm", //

@@ -11,7 +11,7 @@ import { NavLink, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { HiOutlineUser } from "react-icons/hi";
 
 const menuItems = [
-  { name: "Tài khoản", icon: <HiOutlineUser />, lnk: "/account" },
+  { name: "Tài khoản", icon: <HiOutlineUser />, lnk: "/accounton" },
   { name: "Tổng quan", icon: <BsGrid />, lnk: "/dashboard" },
   { name: "Thông số môi trường", icon: <BsDroplet />, lnk: "/evista" },
   { name: "Thu hoạch", icon: <FaLeaf />, lnk: "/harvest" },
@@ -34,7 +34,6 @@ const Sidebar1 = () => {
   const [active, setActive] = useState("Dashboard");
   const [item, setItem] = React.useState(menuItems[0].name);
   const [username, setUsername] = useState(null);
-
   // useEffect(() => {
   //   const storedUsername = localStorage.getItem("username");
   //   const token = localStorage.getItem("token");
@@ -77,7 +76,7 @@ const Sidebar1 = () => {
           <li
             className="group w-14 overflow-hidden rounded-lg 
         border
-        bg-green-300
+        bg-white
         transition-all duration-500 
         hover:w-64 hover:border-gray-200 hover:shadow-lg has-[:focus]:w-64 has-[:focus]:shadow-lg"
           >
@@ -89,7 +88,7 @@ const Sidebar1 = () => {
               <div
                 className="rounded-full
                         border border-black/80
-                        bg-green-300
+                        bg-white
                         backdrop-blur-lg
                         p-2
                         text-black text-sm font-bold
@@ -153,12 +152,6 @@ const Sidebar1 = () => {
             </div>
           </li>
         </ul>
-      </div>
-
-      <div className="">
-        <main>
-          <Outlet /> {/* ✅ nơi hiển thị nội dung route con */}
-        </main>
       </div>
     </div>
   );

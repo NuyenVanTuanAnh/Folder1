@@ -20,10 +20,6 @@ const routes = [
     component: Pages.Food, //dữ liệu
   },
   {
-    path: paths.account, //đường link
-    component: Pages.Account, //dữ liệu
-  },
-  {
     path: paths.alarm, //đường link
     component: Pages.Alarm, //dữ liệu
   },
@@ -54,6 +50,10 @@ const routes = [
   {
     path: paths.info, //đường link
     component: Pages.Info, //dữ liệu
+  },
+  {
+    path: paths.account, //đường link
+    component: Pages.Logout, //dữ liệu
   },
 ];
 

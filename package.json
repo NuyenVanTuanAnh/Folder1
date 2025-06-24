@@ -1,12 +1,26 @@
 {
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@microsoft/signalr": "^8.0.7",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.1.10",
-    "framer-motion": "^12.18.0",
+    "apexcharts": "^4.7.0",
+    "browser-image-compression": "^2.0.2",
+    "classnames": "^2.5.1",
+    "framer-motion": "^12.18.1",
+    "jspdf": "^3.0.1",
+    "lucide-react": "^0.519.0",
+    "qrcode.react": "^4.2.0",
+    "react-apexcharts": "^1.7.0",
     "react-icons": "^5.5.0",
+    "react-modal": "^3.16.3",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.2",
-    "styled-components": "^6.1.19"
+    "react-select": "^5.10.1",
+    "react-toastify": "^11.0.5",
+    "react-tooltip": "^5.29.1",
+    "styled-components": "^6.1.19",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
