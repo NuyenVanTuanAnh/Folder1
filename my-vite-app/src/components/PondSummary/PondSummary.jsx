@@ -49,8 +49,8 @@ const PondSummary = ({
   return (
     <div className="flex flex-col w-full bg-white rounded-lg pb-1 border mt-4">
       <div className="flex text-xl mb-1 justify-between p-1">
-        <h1 className="px-4  font-semibold font-helvetica text-teal-800 mb-4">
-          {pondTypeName} : {filteredPonds.length} (ao)
+        <h1 className="flex text-center px-4 text-2xl font-bold font-helvetica text-teal-800 mb-0.5">
+          {pondTypeName} : {filteredPonds.length} ao
         </h1>
         <span className="flex gap-x-3 pr-5">
           <FaTrashAlt

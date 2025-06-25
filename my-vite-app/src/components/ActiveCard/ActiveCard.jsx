@@ -2,6 +2,8 @@ import React, { useState, useCallback, memo, useEffect } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import cl from "classnames";
 import useCallApi from "../../hooks/useCallApi";
+
+import InputField from "../InputField";
 import FileInputField from "../FileInputField";
 import SelectField from "../SelectField";
 import PropTypes from "prop-types";
@@ -41,7 +43,7 @@ function ActiveCard({ pondId, setIsActiveModal, onDeleteCardSuccess }) {
       null,
       (err) => console.error("Failed to fetch ponds:", err)
     );
-  }, [callApi, pondId]);
+  }, [callApi, pondId, farmId]);
 
   // Handle input changes
   const handleInputChange = useCallback(
@@ -181,7 +183,7 @@ function ActiveCard({ pondId, setIsActiveModal, onDeleteCardSuccess }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-teal-100 to-gray-100/40 backdrop-blur-sm transition-all duration-300 ease-in-out"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div className="relative bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-4 border border-gray-200 animate-in fade-in">

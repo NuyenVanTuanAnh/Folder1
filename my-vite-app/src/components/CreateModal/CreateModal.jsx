@@ -116,7 +116,7 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeId }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 transition-opacity duration-300"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-teal-100 to-gray-100/40 backdrop-blur-sm transition-all duration-300 ease-in-out"
       // onClick={handleOutsideClick}
     >
       <div className="relative bg-white p-6 rounded-lg shadow-xl w-full max-w-lg mx-4 border border-gray-200 animate-in fade-in">

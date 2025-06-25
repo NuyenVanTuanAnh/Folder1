@@ -12,7 +12,7 @@ function ImageModal({ setShowImage }) {
   return (
     <div
       className={cl(
-        "fixed inset-0 flex items-center justify-center bg-gray-200 bg-opacity-30 z-50"
+        "fixed inset-0 flex items-center justify-center bg-gradient-to-br from-teal-100 to-gray-100/40 backdrop-blur-sm transition-all duration-300 ease-in-out z-50"
       )}
       onClick={handleCloseModal} // Đóng modal khi click ra ngoài
     >

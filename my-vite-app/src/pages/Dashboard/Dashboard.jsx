@@ -6,7 +6,6 @@ import { FaHome, FaWater, FaFish, FaInfoCircle } from "react-icons/fa";
 import Button from "./Button";
 import Button1 from "./Button1";
 import useCallApi from "../../hooks/useCallApi";
-import { useSelector } from "react-redux";
 import useSignalR from "../../hooks/useSignalR";
 import DashboardRequestApi from "../../services/api/DashboardApi/pondTypeRequest";
 import { toast } from "react-toastify";
@@ -30,7 +29,7 @@ import CreateModal from "../../components/CreateModal";
 
 function Dashboard() {
   const callApi = useCallApi();
-  const expanded = useSelector((state) => state.sidebar.expanded);
+  // const expanded = useSelector((state) => state.sidebar.expanded);
   const [isModal, setIsModal] = useState(false);
   const [isCreateModal, setIsCreateModal] = useState(false);
   const [isSetTime, setIsSetTime] = useState(false);
@@ -268,7 +267,7 @@ function Dashboard() {
   };
   //--------------------------------------------------------------------------------------//
   return (
-    <div className="flex max-h-screen bg-gray-50">
+    <div className="flex max-h-screen bg-gradient-to-br z-[100] from-teal-100 to-gray-100/40">
       <Sidebar1></Sidebar1>
       <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto overflow-hidden max-h-screen mb-2">
         <div className="w-[95%] h-auto flex flex-col gap-2 items-stretch sm:flex-row justify-between p-5 m-5 bg-gray-100 rounded-lg shadow-md">

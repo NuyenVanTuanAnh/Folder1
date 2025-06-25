@@ -1,5 +1,5 @@
 export const URLDomain = {
-  baseURL: "https://shrimppond.runasp.net/api",
+  baseURL: "https://hcmut.runasp.net/api",
   headers: {
     "Content-Type": "application/json",
   },

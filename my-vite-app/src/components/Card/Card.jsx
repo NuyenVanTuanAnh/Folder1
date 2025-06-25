@@ -12,14 +12,14 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import useCallApi from "../../hooks/useCallApi";
 
-import DeleteCard from "../../components/DeleteCard";
+import DeleteCard from "../DeleteCard";
 import ActiveCard from "../../components/ActiveCard";
 import { FaShrimp } from "react-icons/fa6";
 import { BsDroplet } from "react-icons/bs";
 import useSignalR from "../../hooks/useSignalR";
 import DashboardRequestApi from "../../services/api/DashboardApi/pondTypeRequest";
-import HarvestRequest from "../../services/api/Harvest/HarvestRequestApi";
 import MachineRequestApi from "../../services/api/MachineApi/MachineRequest";
+import HarvestRequest from "../../services/api/Harvest/HarvestRequestApi";
 
 function Card({
   pondId,
@@ -317,139 +317,140 @@ function Card({
     );
   };
   return (
-    <motion.div
-      className="w-60 bg-white rounded-xl shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div
-        className={`flex justify-between items-center z-0 p-3 ${
-          status ? "bg-blue-500" : "bg-gray-400"
-        }`}
+    <>
+      <motion.div
+        className="w-60 bg-white rounded-xl shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
-        <h1 className="text-white text-xl font-bold">{pondName}</h1>
-        <div className="text-white text-right">
-          <p className="text-lg font-semibold">{daysSinceStart} ngày</p>
-          <p className="text-sm">{harvestTime} vụ</p>
+        <div
+          className={`flex justify-between items-center z-0 p-3 ${
+            status ? "bg-blue-500" : "bg-gray-400"
+          }`}
+        >
+          <h1 className="text-white text-xl font-bold">{pondName}</h1>
+          <div className="text-white text-right">
+            <p className="text-lg font-semibold">{daysSinceStart} ngày</p>
+            <p className="text-sm">{harvestTime} vụ</p>
+          </div>
         </div>
-      </div>
 
-      {renderMachineStatus()}
+        {renderMachineStatus()}
 
-      <div className="flex justify-between items-center p-3 border-t bg-gray-50">
-        {status ? (
-          <div className="flex space-x-1 mx-auto">
-            <button
-              className="p-2 bg-blue-400 text-white rounded-md hover:bg-blue-500 transition-colors flex items-center justify-center"
-              onClick={handleWaterClick}
-              data-tooltip-id={`envir-${pondId}`}
-            >
-              <BsDroplet size={16} />
-            </button>
-            <button
-              className="p-2 bg-green-400 text-white rounded-md hover:bg-green-500 transition-colors flex items-center justify-center"
-              onClick={handleHarvestClick}
-              data-tooltip-id={`harvest-${pondId}`}
-            >
-              <FaLeaf size={16} />
-            </button>
-            <button
-              className="p-2 bg-purple-400 text-white rounded-md hover:bg-purple-500 transition-colors flex items-center justify-center"
-              onClick={handleTransferClick}
-              data-tooltip-id={`transfer-${pondId}`}
-            >
-              <FaExchangeAlt size={16} />
-            </button>
-            <button
-              className="p-2 bg-teal-400 text-white rounded-md hover:bg-teal-500 transition-colors flex items-center justify-center"
-              onClick={handleShrimpClick}
-              data-tooltip-id={`shrimp-${pondId}`}
-            >
-              <FaShrimp size={16} />
-            </button>
+        <div className="flex justify-between items-center p-3 border-t bg-gray-50">
+          {status ? (
+            <div className="flex space-x-1 mx-auto">
+              <button
+                className="p-2 bg-blue-400 text-white rounded-md hover:bg-blue-500 transition-colors flex items-center justify-center"
+                onClick={handleWaterClick}
+                data-tooltip-id={`envir-${pondId}`}
+              >
+                <BsDroplet size={16} />
+              </button>
+              <button
+                className="p-2 bg-green-400 text-white rounded-md hover:bg-green-500 transition-colors flex items-center justify-center"
+                onClick={handleHarvestClick}
+                data-tooltip-id={`harvest-${pondId}`}
+              >
+                <FaLeaf size={16} />
+              </button>
+              <button
+                className="p-2 bg-purple-400 text-white rounded-md hover:bg-purple-500 transition-colors flex items-center justify-center"
+                onClick={handleTransferClick}
+                data-tooltip-id={`transfer-${pondId}`}
+              >
+                <FaExchangeAlt size={16} />
+              </button>
+              <button
+                className="p-2 bg-teal-400 text-white rounded-md hover:bg-teal-500 transition-colors flex items-center justify-center"
+                onClick={handleShrimpClick}
+                data-tooltip-id={`shrimp-${pondId}`}
+              >
+                <FaShrimp size={16} />
+              </button>
 
-            <button
-              className="p-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition-colors flex items-center justify-center"
-              onClick={handleInfoClick}
-              data-tooltip-id={`info-${pondId}`}
-            >
-              <FaInfo size={16} />
-            </button>
-            <button
-              className="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors flex items-center justify-center"
-              onClick={() => setIsDeleteCard(true)}
-              data-tooltip-id={`delete-${pondId}`}
-            >
-              <FaTrash size={16} />
-            </button>
-            <ReactTooltip
-              id={`envir-${pondId}`}
-              place="top"
-              content="Thông số môi trường"
-            />
-            <ReactTooltip
-              id={`info-${pondId}`}
-              place="top"
-              content="Thông tin ao"
-            />
-            <ReactTooltip
-              id={`delete-${pondId}`}
-              place="top"
-              content="Xóa ao"
-            />
-            <ReactTooltip
-              id={`harvest-${pondId}`}
-              place="top"
-              content="Thu hoạch"
-            />
-            <ReactTooltip
-              id={`transfer-${pondId}`}
-              place="top"
-              content="Chuyển ao"
-            />
-            <ReactTooltip
-              id={`shrimp-${pondId}`}
-              place="top"
-              content="Thông tin tôm"
-            />
-          </div>
-        ) : (
-          <div className="flex space-x-1 w-full">
-            <button
-              className="flex-1  bg-green-400 text-white rounded-md hover:bg-green-500 transition-colors text-sm font-semibold"
-              onClick={() => setIsActiveModal(true)}
-            >
-              <FaPlay className="inline " /> Kích hoạt
-            </button>
-            <button
-              className="p-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition-colors flex items-center justify-center"
-              onClick={handleInfoClick}
-              data-tooltip-id={`info-${pondId}`}
-            >
-              <FaInfo size={16} />
-            </button>
-            <button
-              className="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors flex items-center justify-center"
-              onClick={() => setIsDeleteCard(true)}
-              data-tooltip-id={`delete-${pondId}`}
-            >
-              <FaTrash size={16} />
-            </button>
-            <ReactTooltip
-              id={`delete-${pondId}`}
-              place="top"
-              content="Xóa ao"
-            />
-            <ReactTooltip
-              id={`info-${pondId}`}
-              place="top"
-              content="Thông tin ao"
-            />
-          </div>
-        )}
-      </div>
-
+              <button
+                className="p-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition-colors flex items-center justify-center"
+                onClick={handleInfoClick}
+                data-tooltip-id={`info-${pondId}`}
+              >
+                <FaInfo size={16} />
+              </button>
+              <button
+                className="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors flex items-center justify-center"
+                onClick={() => setIsDeleteCard(true)}
+                data-tooltip-id={`delete-${pondId}`}
+              >
+                <FaTrash size={16} />
+              </button>
+              <ReactTooltip
+                id={`envir-${pondId}`}
+                place="top"
+                content="Thông số môi trường"
+              />
+              <ReactTooltip
+                id={`info-${pondId}`}
+                place="top"
+                content="Thông tin ao"
+              />
+              <ReactTooltip
+                id={`delete-${pondId}`}
+                place="top"
+                content="Xóa ao"
+              />
+              <ReactTooltip
+                id={`harvest-${pondId}`}
+                place="top"
+                content="Thu hoạch"
+              />
+              <ReactTooltip
+                id={`transfer-${pondId}`}
+                place="top"
+                content="Chuyển ao"
+              />
+              <ReactTooltip
+                id={`shrimp-${pondId}`}
+                place="top"
+                content="Thông tin tôm"
+              />
+            </div>
+          ) : (
+            <div className="flex space-x-1 w-full">
+              <button
+                className="flex-1  bg-green-400 text-white rounded-md hover:bg-green-500 transition-colors text-sm font-semibold"
+                onClick={() => setIsActiveModal(true)}
+              >
+                <FaPlay className="inline " /> Kích hoạt
+              </button>
+              <button
+                className="p-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition-colors flex items-center justify-center"
+                onClick={handleInfoClick}
+                data-tooltip-id={`info-${pondId}`}
+              >
+                <FaInfo size={16} />
+              </button>
+              <button
+                className="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors flex items-center justify-center"
+                onClick={() => setIsDeleteCard(true)}
+                data-tooltip-id={`delete-${pondId}`}
+              >
+                <FaTrash size={16} />
+              </button>
+              <ReactTooltip
+                id={`delete-${pondId}`}
+                place="top"
+                content="Xóa ao"
+              />
+              <ReactTooltip
+                id={`info-${pondId}`}
+                place="top"
+                content="Thông tin ao"
+              />
+            </div>
+          )}
+        </div>
+      </motion.div>
       {isDeleteCard && (
         <DeleteCard
           pondId={pondId}
@@ -465,7 +466,7 @@ function Card({
           pondId={pondId}
         />
       )}
-    </motion.div>
+    </>
   );
 }
 
