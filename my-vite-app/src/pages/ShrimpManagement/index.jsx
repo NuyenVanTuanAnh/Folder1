@@ -1,1 +1,1 @@
-export {default as ShrimpManagement} from './ShrimpManagement'
+export { default as ShrimpManagement } from "./ShrimpManagement";
